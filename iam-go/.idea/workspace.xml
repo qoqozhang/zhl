@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="a4fe39fd-bfa8-4b18-a025-65501c282997" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../.dockerignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.idea/MarsCodeWorkspaceAppSettings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.idea/iam.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.idea/material_theme_project_new.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../deployments/docker-compose.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../deployments/nginx/certs/server.crt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../deployments/nginx/certs/server.key" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../deployments/nginx/nginx.conf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.dockerignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/oauth.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/router.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/v1/department.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/v1/oauth_client.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/v1/permission.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/v1/role.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/v1/user.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/build/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cmd/main.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/configs/casbin.conf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/configs/configs.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/middleware/auth.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/middleware/casbin.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/middleware/middleware.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/middleware/permission.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/middleware/ratelimit.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/casbin_rule.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/department.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/migrate.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/oauth_client.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/oauth_code.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/permission.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/role.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/role_permission.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/user.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/user_role.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/auditlog/auditlog.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/database/mysql/gorm.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/database/redis/redis.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/jwt/jwt.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/logger/logger.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/response/response.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/session/session.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/casbin_service.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/department_service.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/oauth_client_service.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/oauth_code_service.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/permission_service.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/role_permission_service.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/role_service.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/user_role_service.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/user_service.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/build/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/build/nginx.conf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/eslint.config.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/package-lock.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/public/favicon.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/public/icons.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/src/App.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/src/index.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/src/layouts/MainLayout.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/src/main.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/src/pages/PermissionManagement.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/src/pages/Profile.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/src/pages/RoleManagement.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/src/pages/UserManagement.jsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/src/utils/request.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../iam-web/vite.config.js" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Go File" />
+      </list>
+    </option>
+  </component>
+  <component name="GOROOT" url="file://$USER_HOME$/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.0.windows-amd64" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/qoqozhang/zhl.git",
+    "accountId": "b683f8af-ddb1-404e-8735-c4cc8d125b67"
+  }
+}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="3KneGUmDVbCCcjZHoWAXzkPsB3q" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultGoTemplateProperty": "Go File",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.go.formatter.settings.were.checked": "true",
+    "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "RunOnceActivity.go.modules.automatic.dependencies.download": "true",
+    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
+    "git-widget-placeholder": "master",
+    "go.import.settings.migrated": "true",
+    "go.sdk.automatically.set": "true",
+    "last_opened_file_path": "D:/development/iam/iam-go",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.pluginManager"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\development\iam\iam-go\middleware" />
+    </key>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-gosdk-33c477a475b1-e0158606a674-org.jetbrains.plugins.go.sharedIndexes.bundled-GO-241.19072.18" />
+        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-GO-241.19072.18" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VgoProject">
+    <settings-migrated>true</settings-migrated>
+  </component>
+</project>
