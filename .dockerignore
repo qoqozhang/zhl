@@ -1,0 +1,10 @@
+./iam-web/node_modules
+./iam-web/dist
+.git
+.gitignore
+*/.gitignore
+*.log
+.idea
+*/.idea
+iam-go/.idea/
+iam-web/.idea/

@@ -9,6 +9,7 @@ import {
   SettingOutlined,
   AppstoreOutlined,
   IdcardOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons'
 
 const { Header, Sider, Content } = Layout
@@ -28,6 +29,11 @@ const menuItems = [
     key: '/permissions',
     icon: <SafetyOutlined />,
     label: '权限管理',
+  },
+  {
+    key: '/logs',
+    icon: <FileTextOutlined />,
+    label: '操作日志',
   },
   {
     key: '/profile',

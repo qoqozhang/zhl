@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"strings"
+
 	"gorm.io/gorm"
 	"iam-go/pkg/session"
 	"net/http"
@@ -16,6 +18,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 	"iam-go/api"
 	"iam-go/configs"
@@ -25,41 +30,120 @@ import (
 )
 
 func main() {
-	// 0. 初始化日志（最优先，确保后续都能用）
-	logger.Init("info", "console", "stdout")
-
-	// 1. 加载配置（硬编码示例，后续替换为 yaml/env 加载）
-	cfg := configs.Config{
-		Port: "8080",
-		DB: configs.DBConfig{
-			Host:              "127.0.0.1",
-			Port:              3306,
-			User:              "root",
-			Password:          "123456",
-			Database:          "iam",
-			MaxOpenConns:      100,
-			MaxIdleConns:      10,
-			LogLevel:          2,
-			EnableAutoMigrate: true,
-		},
-		Redis: configs.RedisConfig{
-			Enable: true,
-			Host:   "127.0.0.1",
-			Port:   6379,
-			DB:     0,
-		},
-		JWT: configs.JWTConfig{
-			Secret:            "iam-go-dev-secret-please-change-in-production",
-			ExpireMinutes:     30,
-			RefreshExpireDays: 7,
-			Issuer:            "iam-go",
-		},
+	rootCmd := &cobra.Command{
+		Use:   "iam-go",
+		Short: "IAM identity and access management service",
+		Long:  "A lightweight IAM service providing authentication, authorization, and OAuth2 capabilities.",
+		RunE:  runServer,
 	}
 
-	// 2. 初始化 GORM MySQL
+	registerFlags(rootCmd)
+	cobra.OnInitialize(initViper)
+
+	if err := rootCmd.Execute(); err != nil {
+		logger.Fatal().Err(err).Msg("command failed")
+	}
+}
+
+func registerFlags(cmd *cobra.Command) {
+	f := cmd.Flags()
+
+	f.String("port", "8080", "HTTP server listen port")
+
+	f.String("log-level", "info", "Log level: debug | info | warn | error")
+	f.String("log-format", "console", "Log format: console | json")
+	f.String("log-output", "stdout", "Log output: stdout | stderr | file")
+
+	f.String("db-host", "127.0.0.1", "MySQL host")
+	f.Int("db-port", 3306, "MySQL port")
+	f.String("db-user", "root", "MySQL user")
+	f.String("db-password", "123456", "MySQL password")
+	f.String("db-name", "iam", "MySQL database name")
+	f.Int("db-max-open-conns", 100, "MySQL max open connections")
+	f.Int("db-max-idle-conns", 10, "MySQL max idle connections")
+	f.Int("db-log-level", 2, "GORM log level: 0=Silent 1=Error 2=Warn 3=Info")
+	f.Bool("db-auto-migrate", true, "Enable auto migrate on startup")
+
+	f.Bool("redis-enable", true, "Enable Redis cache")
+	f.String("redis-host", "127.0.0.1", "Redis host")
+	f.Int("redis-port", 6379, "Redis port")
+	f.String("redis-password", "", "Redis password")
+	f.Int("redis-db", 0, "Redis DB index")
+
+	f.String("jwt-secret", "iam-go-dev-secret-please-change-in-production", "JWT signing secret")
+	f.Int("jwt-expire-minutes", 30, "Access token expire minutes")
+	f.Int("jwt-refresh-expire-days", 7, "Refresh token expire days")
+	f.String("jwt-issuer", "iam-go", "JWT issuer")
+}
+
+func initViper() {
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+	viper.AddConfigPath("configs/")
+	viper.AddConfigPath("./configs")
+
+	viper.AutomaticEnv()
+	viper.SetEnvPrefix("IAM")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
+
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			panic(err)
+		}
+	}
+}
+
+func applyCobraFlags(cmd *cobra.Command) {
+	cmd.Flags().VisitAll(func(f *pflag.Flag) {
+		if f.Changed {
+			key := strings.ReplaceAll(f.Name, "-", ".")
+			viper.Set(key, f.Value.String())
+		}
+	})
+}
+
+func runServer(cmd *cobra.Command, _ []string) error {
+	applyCobraFlags(cmd)
+
+	cfg := configs.Config{}
+	if err := viper.Unmarshal(&cfg); err != nil {
+		return err
+	}
+
+	if cfg.Log.Level == "" {
+		cfg.Log.Level = "info"
+	}
+	if cfg.Log.Format == "" {
+		cfg.Log.Format = "console"
+	}
+	if cfg.Log.Output == "" {
+		cfg.Log.Output = "stdout"
+	}
+	logger.Init(cfg.Log.Level, cfg.Log.Format, cfg.Log.Output)
+
+	if err := cfg.DB.ValidateAndApplyDefaults(); err != nil {
+		return err
+	}
+	if cfg.Redis.Enable {
+		if err := cfg.Redis.ValidateAndApplyDefaults(); err != nil {
+			logger.Warn().Err(err).Msg("redis config invalid, fallback to in-memory")
+			cfg.Redis.Enable = false
+		}
+	}
+	if err := cfg.JWT.ValidateAndApplyDefaults(); err != nil {
+		return err
+	}
+
+	if viper.ConfigFileUsed() != "" {
+		logger.Info().Str("file", viper.ConfigFileUsed()).Msg("config loaded")
+	} else {
+		logger.Warn().Msg("no config.yaml found, using env / flags defaults")
+	}
+
 	dbPool, err := dbmysql.New(&cfg.DB)
 	if err != nil {
-		logger.Fatal().Err(err).Msg("init mysql failed")
+		return err
 	}
 	defer func() {
 		if err := dbPool.Close(); err != nil {
@@ -76,38 +160,23 @@ func main() {
 		Int("max_idle", cfg.DB.MaxIdleConns).
 		Msg("mysql connected")
 
-	// 3. 自动迁移
 	if cfg.DB.EnableAutoMigrate {
 		if err := model.Migrate(dbPool.GORM()); err != nil {
-			logger.Fatal().Err(err).Msg("auto migrate failed")
+			return err
 		}
 		logger.Info().Msg("auto migrate done")
 	}
 
-	// 3.1 初始化默认 admin 用户
 	initDefaultAdmin(dbPool.GORM())
-
-	// 3.2 初始化默认系统角色
 	initDefaultRoles(dbPool.GORM())
-
-	// 3.3 初始化 admin 用户 ↔ admin 角色绑定
 	initDefaultAdminRoleBinding(dbPool.GORM())
-
-	// 3.4 初始化默认权限资源
 	initDefaultPermissions(dbPool.GORM())
-
-	// 3.5 admin 角色自动绑定全部权限
 	initDefaultAdminRolePermissions(dbPool.GORM())
-
-	// 3.6 默认 OAuth 客户端
 	initDefaultOAuthClient(dbPool.GORM())
 
-	// 4. 初始化 Redis
 	var rawRedis *redis.Client
 	if cfg.Redis.Enable {
-		if err := cfg.Redis.ValidateAndApplyDefaults(); err != nil {
-			logger.Warn().Err(err).Msg("redis config invalid, fallback to in-memory")
-		} else if redisClient, err := dbredis.New(&dbredis.Options{
+		if redisClient, err := dbredis.New(&dbredis.Options{
 			Addr:         cfg.Redis.Addr(),
 			Password:     cfg.Redis.Password,
 			DB:           cfg.Redis.DB,
@@ -127,10 +196,9 @@ func main() {
 		}
 	}
 
-	// 5. 初始化 JWT Manager
 	jwtMgr, err := jwtutil.NewManager(&cfg.JWT, rawRedis)
 	if err != nil {
-		logger.Fatal().Err(err).Msg("init jwt manager failed")
+		return err
 	}
 	logger.Info().
 		Int("access_min", cfg.JWT.ExpireMinutes).
@@ -138,7 +206,6 @@ func main() {
 		Bool("redis", rawRedis != nil).
 		Msg("jwt manager ready")
 
-	// 5. 初始化 Session Store（Redis）
 	var sessionStore *session.Store
 	if rawRedis != nil {
 		sessionStore = session.NewStore(rawRedis)
@@ -147,11 +214,9 @@ func main() {
 		logger.Warn().Msg("redis unavailable, session disabled (JWT Bearer only)")
 	}
 
-	// 5.5 初始化 Casbin 权限引擎
-	var casbinSvc *services.CasbinService
-	casbinSvc, err = services.NewCasbinService(dbPool.GORM(), "configs/casbin.conf")
+	casbinSvc, err := services.NewCasbinService(dbPool.GORM(), "configs/casbin.conf")
 	if err != nil {
-		logger.Fatal().Err(err).Msg("init casbin enforcer failed")
+		return err
 	}
 	if err := casbinSvc.EnsureStartupPolicy(context.Background()); err != nil {
 		logger.Warn().Err(err).Msg("casbin startup policy load failed, will retry on permission change")
@@ -159,7 +224,6 @@ func main() {
 		logger.Info().Msg("casbin permission engine ready (policy loaded)")
 	}
 
-	// 6. 启动 HTTP
 	r := gin.Default()
 	api.RegisterRoutes(r, &api.RegisterRoutesOption{
 		RedisClient:  rawRedis,
@@ -178,7 +242,6 @@ func main() {
 		}
 	}()
 
-	// 7. 优雅关闭
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
@@ -190,10 +253,9 @@ func main() {
 		logger.Error().Err(err).Msg("http shutdown error")
 	}
 	logger.Info().Msg("shutdown complete")
+	return nil
 }
 
-// initDefaultAdmin 启动时确保有 admin 用户，没有就创建
-// 用 username 查（role 字段由后续 sys_user_role 关联表提供）
 func initDefaultAdmin(db *gorm.DB) {
 	var count int64
 	db.Model(&model.User{}).Where("username = ?", "admin").Count(&count)
@@ -225,8 +287,6 @@ func initDefaultAdmin(db *gorm.DB) {
 		Msg("default admin user created | CHANGE IT IN PRODUCTION!")
 }
 
-// initDefaultRoles 启动时确保系统内置角色存在
-// 幂等：已存在的 role_key 不会重复创建
 func initDefaultRoles(db *gorm.DB) {
 	roleSvc := services.NewRoleService(db)
 	if err := roleSvc.EnsureDefaultRoles(context.Background()); err != nil {
@@ -236,8 +296,6 @@ func initDefaultRoles(db *gorm.DB) {
 	logger.Info().Msg("default system roles ensured (admin/user/viewer)")
 }
 
-// initDefaultAdminRoleBinding 启动时确保 admin 用户绑定了 admin 角色
-// 幂等：已绑定则跳过
 func initDefaultAdminRoleBinding(db *gorm.DB) {
 	var adminUser model.User
 	if err := db.Where("username = ?", "admin").First(&adminUser).Error; err != nil {
@@ -262,8 +320,6 @@ func initDefaultAdminRoleBinding(db *gorm.DB) {
 		Msg("admin user bound to admin role")
 }
 
-// initDefaultPermissions 启动时写入种子权限数据
-// 幂等：已存在的 permission_key 不会重复创建
 func initDefaultPermissions(db *gorm.DB) {
 	permSvc := services.NewPermissionService(db)
 	if err := permSvc.EnsureDefaultPermissions(context.Background()); err != nil {
@@ -273,8 +329,6 @@ func initDefaultPermissions(db *gorm.DB) {
 	logger.Info().Msg("default permissions ensured (24 items)")
 }
 
-// initDefaultAdminRolePermissions 启动时让 admin 角色绑定全部权限
-// 幂等：已有的绑定不会重复创建
 func initDefaultAdminRolePermissions(db *gorm.DB) {
 	var adminRole model.Role
 	if err := db.Where("role_key = ?", "admin").First(&adminRole).Error; err != nil {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Layout,
   Tree,
@@ -23,11 +23,12 @@ import {
   UserOutlined,
   MailOutlined,
   PhoneOutlined,
+  AppstoreAddOutlined,
 } from '@ant-design/icons'
 
 const { Sider, Content } = Layout
 
-const deptTreeData = [
+const initialDeptTree = [
   {
     title: '总公司',
     key: 'all',
@@ -49,14 +50,8 @@ const deptTreeData = [
           { title: '产品二组', key: 'p2' },
         ],
       },
-      {
-        title: '市场部',
-        key: 'market',
-      },
-      {
-        title: '人事部',
-        key: 'hr',
-      },
+      { title: '市场部', key: 'market' },
+      { title: '人事部', key: 'hr' },
     ],
   },
 ]
@@ -72,25 +67,85 @@ const allUsers = [
   { id: 8, username: 'zhengshi', name: '郑十', email: 'zhengshi@example.com', phone: '13800138008', department: 'p1', deptName: '产品一组', role: '普通用户', status: false, createdAt: '2025-08-30' },
 ]
 
-const deptMap = {
-  all: ['tech', 'product', 'market', 'hr', 'frontend', 'backend', 'qa', 'p1', 'p2'],
-  tech: ['frontend', 'backend', 'qa'],
-  product: ['p1', 'p2'],
-  market: ['market'],
-  hr: ['hr'],
-  frontend: ['frontend'],
-  backend: ['backend'],
-  qa: ['qa'],
-  p1: ['p1'],
-  p2: ['p2'],
+const buildDeptMap = (tree) => {
+  const map = {}
+  const collect = (nodes, parentKey) => {
+    const keys = []
+    nodes.forEach((node) => {
+      keys.push(node.key)
+      if (node.children) {
+        keys.push(...collect(node.children, node.key))
+      }
+    })
+    if (parentKey) {
+      map[parentKey] = keys
+    } else {
+      keys.forEach((k) => {
+        map[k] = [k]
+      })
+    }
+    return keys
+  }
+  collect(tree, null)
+  map.all = collect(tree, null)
+  return map
+}
+
+const findNode = (tree, key) => {
+  for (const node of tree) {
+    if (node.key === key) return node
+    if (node.children) {
+      const found = findNode(node.children, key)
+      if (found) return found
+    }
+  }
+  return null
+}
+
+const removeNode = (tree, key) => {
+  return tree
+    .filter((node) => node.key !== key)
+    .map((node) => ({
+      ...node,
+      children: node.children ? removeNode(node.children, key) : undefined,
+    }))
+}
+
+const addNode = (tree, parentKey, newNode) => {
+  return tree.map((node) => {
+    if (node.key === parentKey) {
+      return {
+        ...node,
+        children: [...(node.children || []), newNode],
+      }
+    }
+    return {
+      ...node,
+      children: node.children ? addNode(node.children, parentKey, newNode) : undefined,
+    }
+  })
+}
+
+const collectKeys = (node) => {
+  const keys = [node.key]
+  if (node.children) {
+    node.children.forEach((c) => keys.push(...collectKeys(c)))
+  }
+  return keys
 }
 
 export default function UserManagement() {
+  const [deptTree, setDeptTree] = useState(initialDeptTree)
   const [selectedDept, setSelectedDept] = useState('all')
   const [searchText, setSearchText] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [editingUser, setEditingUser] = useState(null)
+  const [deptModalOpen, setDeptModalOpen] = useState(false)
+  const [deptParentKey, setDeptParentKey] = useState(null)
   const [form] = Form.useForm()
+  const [deptForm] = Form.useForm()
+
+  const deptMap = useMemo(() => buildDeptMap(deptTree), [deptTree])
 
   const filteredUsers = allUsers.filter((u) => {
     const deptKeys = deptMap[selectedDept] || [selectedDept]
@@ -105,6 +160,54 @@ export default function UserManagement() {
 
   const handleTreeSelect = (keys) => {
     if (keys.length > 0) setSelectedDept(keys[0])
+  }
+
+  const openAddDeptModal = (parentKey) => {
+    setDeptParentKey(parentKey)
+    deptForm.resetFields()
+    setDeptModalOpen(true)
+  }
+
+  const handleDeptAdd = () => {
+    deptForm.validateFields().then((values) => {
+      const newKey = `dept_${Date.now()}`
+      const newNode = { title: values.title, key: newKey }
+      if (deptParentKey) {
+        setDeptTree((prev) => addNode(prev, deptParentKey, newNode))
+      } else {
+        setDeptTree((prev) => [...prev, newNode])
+      }
+      message.success('新增部门成功')
+      setDeptModalOpen(false)
+    })
+  }
+
+  const handleDeptDelete = (key) => {
+    const node = findNode(deptTree, key)
+    const keysToDelete = node ? collectKeys(node) : [key]
+    const hasUsers = allUsers.some((u) => keysToDelete.includes(u.department))
+    if (hasUsers) {
+      Modal.confirm({
+        title: '该部门下存在用户',
+        content: '删除部门将同时移除部门下的所有用户关联，确认继续？',
+        okText: '确认删除',
+        cancelText: '取消',
+        okButtonProps: { danger: true },
+        onOk: () => {
+          setDeptTree((prev) => removeNode(prev, key))
+          if (selectedDept && keysToDelete.includes(selectedDept)) {
+            setSelectedDept('all')
+          }
+          message.success('删除部门成功')
+        },
+      })
+      return
+    }
+    setDeptTree((prev) => removeNode(prev, key))
+    if (selectedDept === key) {
+      setSelectedDept('all')
+    }
+    message.success('删除部门成功')
   }
 
   const openAddModal = () => {
@@ -130,6 +233,52 @@ export default function UserManagement() {
   const handleDelete = () => {
     message.success('删除成功')
   }
+
+  const renderTreeNodeTitle = (node) => {
+    if (node.key === 'all') {
+      return <span>{node.title}</span>
+    }
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+        <span>{node.title}</span>
+        <Button
+          type="link"
+          size="small"
+          icon={<PlusOutlined />}
+          style={{ padding: 0, fontSize: 12 }}
+          onClick={(e) => {
+            e.stopPropagation()
+            openAddDeptModal(node.key)
+          }}
+        />
+        <Popconfirm
+          title="确定删除该部门？"
+          okText="确定"
+          cancelText="取消"
+          onConfirm={(e) => {
+            e?.stopPropagation()
+            handleDeptDelete(node.key)
+          }}
+        >
+          <Button
+            type="link"
+            size="small"
+            danger
+            icon={<DeleteOutlined />}
+            style={{ padding: 0, fontSize: 12 }}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </Popconfirm>
+      </span>
+    )
+  }
+
+  const enrichTreeData = (nodes) =>
+    nodes.map((node) => ({
+      ...node,
+      title: renderTreeNodeTitle(node),
+      children: node.children ? enrichTreeData(node.children) : undefined,
+    }))
 
   const columns = [
     {
@@ -202,11 +351,16 @@ export default function UserManagement() {
   return (
     <Layout style={{ background: '#fff', minHeight: 'calc(100vh - 120px)' }}>
       <Sider width={240} style={{ background: '#fff', borderRight: '1px solid #f0f0f0', padding: 16 }}>
-        <div style={{ marginBottom: 12, fontWeight: 500 }}>部门架构</div>
+        <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontWeight: 500 }}>部门架构</span>
+          <Button size="small" icon={<AppstoreAddOutlined />} onClick={() => openAddDeptModal(null)}>
+            新增
+          </Button>
+        </div>
         <Tree
           showLine
           defaultExpandAll
-          treeData={deptTreeData}
+          treeData={enrichTreeData(deptTree)}
           selectedKeys={[selectedDept]}
           onSelect={handleTreeSelect}
         />
@@ -322,6 +476,26 @@ export default function UserManagement() {
             ]}
           >
             <Input.Password placeholder="请再次输入密码" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title={deptParentKey === null ? '新增顶级部门' : '新增子部门'}
+        open={deptModalOpen}
+        onOk={handleDeptAdd}
+        onCancel={() => setDeptModalOpen(false)}
+        okText="确定"
+        cancelText="取消"
+        width={420}
+      >
+        <Form form={deptForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item
+            name="title"
+            label="部门名称"
+            rules={[{ required: true, message: '请输入部门名称' }]}
+          >
+            <Input placeholder="请输入部门名称" />
           </Form.Item>
         </Form>
       </Modal>

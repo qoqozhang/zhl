@@ -1,0 +1,38 @@
+port: "8080"
+log:
+  level: "info"
+  format: "console"
+  output: "stdout"
+db:
+  host: "127.0.0.1"
+  port: 3306
+  user: "root"
+  password: "123456"
+  database: "iam"
+  max_open_conns: 100
+  max_idle_conns: 10
+  conn_max_lifetime: 300
+  conn_max_idle_time: 60
+  charset: "utf8mb4"
+  parse_time: true
+  ssl_mode: "false"
+  timeout: 5
+  log_level: 2
+  enable_auto_migrate: true
+redis:
+  enable: true
+  host: "127.0.0.1"
+  port: 6379
+  password: ""
+  db: 0
+  dial_timeout: 5
+  read_timeout: 3
+  write_timeout: 3
+  pool_size: 16
+  min_idle_conns: 0
+jwt:
+  secret: "iam-go-dev-secret-please-change-in-production"
+  expire_minutes: 30
+  refresh_expire_days: 7
+  issuer: "iam-go"
+  refresh_key_prefix: "refresh:"

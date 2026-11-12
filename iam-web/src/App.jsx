@@ -4,6 +4,7 @@ import UserManagement from './pages/UserManagement'
 import RoleManagement from './pages/RoleManagement'
 import PermissionManagement from './pages/PermissionManagement'
 import Profile from './pages/Profile'
+import OperationLog from './pages/OperationLog'
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="roles" element={<RoleManagement />} />
         <Route path="permissions" element={<PermissionManagement />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="logs" element={<OperationLog />} />
       </Route>
     </Routes>
   )

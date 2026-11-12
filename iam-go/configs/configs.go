@@ -9,9 +9,16 @@ import (
 // 后续可替换为 viper 从 yaml/env 加载
 type Config struct {
 	Port  string      `mapstructure:"port" json:"port" yaml:"port"`
+	Log   LogConfig   `mapstructure:"log" json:"log" yaml:"log"`
 	DB    DBConfig    `mapstructure:"db" json:"db" yaml:"db"`
 	Redis RedisConfig `mapstructure:"redis" json:"redis" yaml:"redis"`
 	JWT   JWTConfig   `mapstructure:"jwt" json:"jwt" yaml:"jwt"`
+}
+
+type LogConfig struct {
+	Level  string `yaml:"level"`
+	Format string `yaml:"format"`
+	Output string `yaml:"output"`
 }
 
 // DBConfig MySQL 连接池配置（配合 GORM 使用）
